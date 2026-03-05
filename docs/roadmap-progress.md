@@ -78,3 +78,6 @@
 ## Commit 27
 - feat(runtime): add support for Rust-compiled WASM plugins
 
+## Commit 28
+- feat(runtime): add support for TinyGo-compiled WASM plugins
+

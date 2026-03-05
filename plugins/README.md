@@ -9,3 +9,6 @@ Planned targets:
 
 ## Rust Plugin
 Use `wasm32-wasi` target for plugin builds.
+
+## TinyGo Plugin
+Use TinyGo with WASI-compatible output.
