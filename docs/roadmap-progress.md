@@ -90,3 +90,6 @@
 ## Commit 31
 - feat(cli): add command to deploy workflows via YAML
 
+## Commit 32
+- feat(core): implement dynamic load balancing across workers
+
