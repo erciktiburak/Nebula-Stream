@@ -39,3 +39,6 @@
 ## Commit 14
 - feat(core): add logging middleware for ingestion pipeline
 
+## Commit 15
+- build: setup basic docker-compose for local development
+

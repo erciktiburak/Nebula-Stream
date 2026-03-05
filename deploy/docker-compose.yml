@@ -7,3 +7,7 @@ services:
     ports:
       - "4222:4222"
       - "8222:8222"
+
+  nebula-engine:
+    image: golang:1.24
+    command: ["sleep", "infinity"]
