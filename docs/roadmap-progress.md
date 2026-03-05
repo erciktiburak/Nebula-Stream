@@ -69,3 +69,6 @@
 ## Commit 24
 - feat(api): add gRPC gateway for external event triggers
 
+## Commit 25
+- test: end-to-end test for a simple WASM-based workflow
+
