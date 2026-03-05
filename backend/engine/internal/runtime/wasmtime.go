@@ -7,3 +7,5 @@ func RuntimeName() string {
 func SandboxEnabled() bool {
   return true
 }
+
+type StepData map[string][]byte

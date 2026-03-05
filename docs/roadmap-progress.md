@@ -57,3 +57,6 @@
 ## Commit 20
 - feat(engine): implement parallel task execution (fan-out)
 
+## Commit 21
+- feat(runtime): allow data passing between WASM steps
+
