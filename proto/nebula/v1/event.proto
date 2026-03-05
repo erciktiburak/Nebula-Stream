@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package nebula.v1;
+
+message EventEnvelope {
+  string id = 1;
+  string topic = 2;
+  bytes payload = 3;
+}
