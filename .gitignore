@@ -1,0 +1,20 @@
+# macOS
+.DS_Store
+
+# Go
+bin/
+dist/
+coverage.out
+*.test
+
+# IDE
+.idea/
+.vscode/
+
+# Node
+node_modules/
+.next/
+
+# Env
+.env
+.env.*

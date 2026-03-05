@@ -1,0 +1,11 @@
+version: v1
+name: hello-world
+
+triggers:
+  - type: manual
+
+steps:
+  - id: log-start
+    type: builtin.log
+    input:
+      message: "Nebula workflow bootstrap"
