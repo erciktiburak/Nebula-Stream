@@ -108,3 +108,6 @@
 ## Commit 37
 - feat(ui): integrate react-flow for visual workflow builder
 
+## Commit 38
+- feat(ui): add real-time telemetry dashboard using websockets
+
