@@ -13,6 +13,7 @@ type TelemetrySnapshot = {
   messages: EdgeMessage[]
   mode: 'mock' | 'live'
   activeWorkflow: string
+  history: Array<{ eventId: string; workflow: string; durationMs: number; startedAt: string }>
 }
 
 const pipelineEdges = [
@@ -71,6 +72,7 @@ type ExecutionRecord = {
   event_id: string
   workflow: string
   topic: string
+  started_at: string
   duration_ms: number
   step_count: number
   results: ExecutionResult[]
@@ -139,7 +141,20 @@ function fromExecution(record: ExecutionRecord): Pick<TelemetrySnapshot, 'throug
   }
 }
 
-async function fetchLiveSnapshot(engineURL: string): Promise<Pick<TelemetrySnapshot, 'throughput' | 'activeNodes' | 'latencyMs' | 'logs' | 'messages' | 'activeWorkflow'> | null> {
+function mapHistory(records: ExecutionRecord[]): TelemetrySnapshot['history'] {
+  return records.map((r) => ({
+    eventId: r.event_id,
+    workflow: r.workflow,
+    durationMs: r.duration_ms,
+    startedAt: r.started_at,
+  }))
+}
+
+async function fetchLiveSnapshot(engineURL: string): Promise<
+  (Pick<TelemetrySnapshot, 'throughput' | 'activeNodes' | 'latencyMs' | 'logs' | 'messages' | 'activeWorkflow'> & {
+    history: TelemetrySnapshot['history']
+  }) | null
+> {
   const workflowsRes = await fetch(`${engineURL}/api/v1/workflows`, { cache: 'no-store' })
   if (!workflowsRes.ok) {
     return null
@@ -156,7 +171,16 @@ async function fetchLiveSnapshot(engineURL: string): Promise<Pick<TelemetrySnaps
   }
 
   const latest = (await latestRes.json()) as ExecutionRecord
-  return fromExecution(latest)
+  const historyRes = await fetch(
+    `${engineURL}/api/v1/executions/history?workflow=${encodeURIComponent(workflows.active)}&limit=8`,
+    { cache: 'no-store' },
+  )
+  const history = historyRes.ok ? ((await historyRes.json()) as ExecutionRecord[]) : []
+
+  return {
+    ...fromExecution(latest),
+    history: mapHistory(history),
+  }
 }
 
 export function connectTelemetrySocket(
@@ -182,6 +206,7 @@ export function connectTelemetrySocket(
           messages: [nextEdge(cursor), nextEdge(cursor + 1)],
           mode: 'mock',
           activeWorkflow: 'hello-world',
+          history: [],
         })
       })
       .catch(() => {
@@ -193,6 +218,7 @@ export function connectTelemetrySocket(
           messages: [nextEdge(cursor), nextEdge(cursor + 1)],
           mode: 'mock',
           activeWorkflow: 'hello-world',
+          history: [],
         })
       })
   }, 1500)
@@ -231,6 +257,7 @@ export function useTelemetryFeed() {
     ],
     mode: 'mock',
     activeWorkflow: 'hello-world',
+    history: [],
   })
 
   useEffect(() => {
@@ -243,6 +270,7 @@ export function useTelemetryFeed() {
         messages: [...snapshot.messages, ...prev.messages].slice(0, 12),
         mode: snapshot.mode,
         activeWorkflow: snapshot.activeWorkflow,
+        history: snapshot.history,
       }))
     }, engineURL)
 

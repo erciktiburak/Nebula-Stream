@@ -37,7 +37,7 @@ func (s *MemoryStore) Load(key string) ([]byte, error) {
 	defer s.mu.RUnlock()
 	raw, ok := s.data[key]
 	if !ok {
-		return nil, fmt.Errorf("state key not found: %s", key)
+		return nil, fmt.Errorf("%w: %s", ErrNotFound, key)
 	}
 
 	copyBytes := make([]byte, len(raw))

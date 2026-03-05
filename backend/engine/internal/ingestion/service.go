@@ -3,6 +3,7 @@ package ingestion
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -19,6 +20,22 @@ type Service struct {
 	registry  *workflow.Registry
 	runner    *engine.Runner
 	store     state.Store
+}
+
+type stepExecution struct {
+	ID     string         `json:"id"`
+	Type   string         `json:"type"`
+	Output map[string]any `json:"output,omitempty"`
+}
+
+type executionRecord struct {
+	EventID    string          `json:"event_id"`
+	Workflow   string          `json:"workflow"`
+	Topic      string          `json:"topic"`
+	StartedAt  time.Time       `json:"started_at"`
+	DurationMs int64           `json:"duration_ms"`
+	StepCount  int             `json:"step_count"`
+	Results    []stepExecution `json:"results"`
 }
 
 func NewService(busClient *bus.Client, registry *workflow.Registry, store state.Store) *Service {
@@ -82,6 +99,7 @@ func (s *Service) persistExecution(def workflow.Definition, event bus.EventEnvel
 	}
 
 	stepResults := make([]map[string]any, 0, len(def.Steps))
+	execSteps := make([]stepExecution, 0, len(def.Steps))
 	for _, step := range def.Steps {
 		stepResult, ok := results[step.ID]
 		if !ok {
@@ -93,16 +111,22 @@ func (s *Service) persistExecution(def workflow.Definition, event bus.EventEnvel
 			"type":   step.Type,
 			"output": stepResult.Output,
 		})
+
+		execSteps = append(execSteps, stepExecution{
+			ID:     step.ID,
+			Type:   step.Type,
+			Output: stepResult.Output,
+		})
 	}
 
-	record := map[string]any{
-		"event_id":    event.ID,
-		"workflow":    def.Name,
-		"topic":       event.Topic,
-		"started_at":  startedAt,
-		"duration_ms": durationMs,
-		"step_count":  len(stepResults),
-		"results":     stepResults,
+	record := executionRecord{
+		EventID:    event.ID,
+		Workflow:   def.Name,
+		Topic:      event.Topic,
+		StartedAt:  startedAt,
+		DurationMs: durationMs,
+		StepCount:  len(stepResults),
+		Results:    execSteps,
 	}
 
 	raw, err := json.Marshal(record)
@@ -118,7 +142,43 @@ func (s *Service) persistExecution(def workflow.Definition, event bus.EventEnvel
 		return fmt.Errorf("save latest execution record: %w", err)
 	}
 
+	history, err := s.loadHistory(def.Name)
+	if err != nil {
+		return err
+	}
+
+	history = append([]executionRecord{record}, history...)
+	if len(history) > 20 {
+		history = history[:20]
+	}
+
+	rawHistory, err := json.Marshal(history)
+	if err != nil {
+		return fmt.Errorf("marshal execution history: %w", err)
+	}
+
+	if err := s.store.Save(historyExecutionKey(def.Name), rawHistory); err != nil {
+		return fmt.Errorf("save execution history: %w", err)
+	}
+
 	return nil
+}
+
+func (s *Service) loadHistory(workflowName string) ([]executionRecord, error) {
+	raw, err := s.store.Load(historyExecutionKey(workflowName))
+	if err != nil {
+		if errors.Is(err, state.ErrNotFound) {
+			return []executionRecord{}, nil
+		}
+		return nil, fmt.Errorf("load execution history: %w", err)
+	}
+
+	var records []executionRecord
+	if err := json.Unmarshal(raw, &records); err != nil {
+		return nil, fmt.Errorf("decode execution history: %w", err)
+	}
+
+	return records, nil
 }
 
 func executionKey(eventID string) string {
@@ -127,6 +187,10 @@ func executionKey(eventID string) string {
 
 func latestExecutionKey(workflowName string) string {
 	return fmt.Sprintf("workflow:%s:latest", workflowName)
+}
+
+func historyExecutionKey(workflowName string) string {
+	return fmt.Sprintf("workflow:%s:history", workflowName)
 }
 
 func (s *Service) resolveWorkflow(event bus.EventEnvelope) (workflow.Definition, error) {

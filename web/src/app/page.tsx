@@ -83,6 +83,26 @@ export default function Page() {
           </ul>
         </article>
       </section>
+
+      <section className="panel history-panel">
+        <div className="panel-head">
+          <h2>Execution History</h2>
+          <p>Recent runs from control-plane API</p>
+        </div>
+        <ul className="history-list">
+          {telemetry.history.length === 0 ? (
+            <li>no execution history yet</li>
+          ) : (
+            telemetry.history.map((item) => (
+              <li key={item.eventId}>
+                <strong>{item.workflow}</strong>
+                <span>{item.eventId}</span>
+                <p>{item.durationMs} ms</p>
+              </li>
+            ))
+          )}
+        </ul>
+      </section>
     </main>
   )
 }

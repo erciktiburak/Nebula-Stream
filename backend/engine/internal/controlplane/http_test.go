@@ -58,6 +58,9 @@ func TestExecutionEndpoint(t *testing.T) {
 	if err := store.Save("workflow:hello:latest", []byte(`{"event_id":"evt-999","workflow":"hello"}`)); err != nil {
 		t.Fatalf("seed latest: %v", err)
 	}
+	if err := store.Save("workflow:hello:history", []byte(`[{"event_id":"evt-999"},{"event_id":"evt-998"}]`)); err != nil {
+		t.Fatalf("seed history: %v", err)
+	}
 
 	registry := workflow.NewRegistry(workflow.Definition{Name: "hello", Version: "v1", Triggers: []workflow.Trigger{{Type: "manual"}}, Steps: []workflow.Step{{ID: "s1", Type: "builtin.log"}}})
 	srv := NewServer(registry, store, &testPublisher{}, "nebula.events.ingest")
@@ -75,6 +78,13 @@ func TestExecutionEndpoint(t *testing.T) {
 	srv.Handler().ServeHTTP(latestRes, latestReq)
 	if latestRes.Code != http.StatusOK {
 		t.Fatalf("unexpected latest status code: %d", latestRes.Code)
+	}
+
+	historyReq := httptest.NewRequest(http.MethodGet, "/api/v1/executions/history?workflow=hello&limit=1", nil)
+	historyRes := httptest.NewRecorder()
+	srv.Handler().ServeHTTP(historyRes, historyReq)
+	if historyRes.Code != http.StatusOK {
+		t.Fatalf("unexpected history status code: %d", historyRes.Code)
 	}
 }
 

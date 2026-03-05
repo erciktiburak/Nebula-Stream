@@ -7,6 +7,7 @@ This package contains a running Next.js demo for Nebula-Stream workflow visualiz
 - React Flow based pipeline graph
 - Mock real-time telemetry stream
 - Live control-plane polling for workflow and latest execution
+- Execution history timeline from control-plane (`/api/v1/executions/history`)
 - Manual trigger button (`POST /api/v1/triggers`)
 - Throughput, node count, latency, and error widgets
 - Live node log feed panel

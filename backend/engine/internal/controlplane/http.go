@@ -3,9 +3,11 @@ package controlplane
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -34,6 +36,7 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("/healthz", s.handleHealth)
 	mux.HandleFunc("/api/v1/workflows", s.handleWorkflows)
 	mux.HandleFunc("/api/v1/executions/latest", s.handleLatestExecution)
+	mux.HandleFunc("/api/v1/executions/history", s.handleExecutionHistory)
 	mux.HandleFunc("/api/v1/executions/", s.handleExecutionByID)
 	mux.HandleFunc("/api/v1/triggers", s.handleTrigger)
 	return mux
@@ -140,6 +143,62 @@ func (s *Server) handleLatestExecution(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write(raw)
+}
+
+func (s *Server) handleExecutionHistory(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
+	if s.store == nil {
+		writeErr(w, http.StatusNotFound, fmt.Errorf("state store is not configured"))
+		return
+	}
+
+	name := r.URL.Query().Get("workflow")
+	if name == "" {
+		active, ok := s.registry.Active()
+		if !ok {
+			writeErr(w, http.StatusNotFound, fmt.Errorf("no active workflow configured"))
+			return
+		}
+		name = active.Name
+	}
+
+	limit := 10
+	if v := r.URL.Query().Get("limit"); v != "" {
+		n, err := strconv.Atoi(v)
+		if err != nil || n <= 0 {
+			writeErr(w, http.StatusBadRequest, fmt.Errorf("invalid limit value: %s", v))
+			return
+		}
+		if n < 50 {
+			limit = n
+		}
+	}
+
+	raw, err := s.store.Load("workflow:" + name + ":history")
+	if err != nil {
+		if errors.Is(err, state.ErrNotFound) {
+			writeJSON(w, http.StatusOK, []any{})
+			return
+		}
+		writeErr(w, http.StatusNotFound, err)
+		return
+	}
+
+	var records []map[string]any
+	if err := json.Unmarshal(raw, &records); err != nil {
+		writeErr(w, http.StatusInternalServerError, fmt.Errorf("decode execution history: %w", err))
+		return
+	}
+
+	if len(records) > limit {
+		records = records[:limit]
+	}
+
+	writeJSON(w, http.StatusOK, records)
 }
 
 type triggerRequest struct {

@@ -26,4 +26,8 @@ func TestExecutionKeys(t *testing.T) {
 	if got := latestExecutionKey("hello"); got != "workflow:hello:latest" {
 		t.Fatalf("unexpected latest key: %s", got)
 	}
+
+	if got := historyExecutionKey("hello"); got != "workflow:hello:history" {
+		t.Fatalf("unexpected history key: %s", got)
+	}
 }
