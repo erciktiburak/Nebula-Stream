@@ -126,11 +126,22 @@ flowchart LR
 
 The dashboard demo now runs from `web/` with React Flow and mock live telemetry.
 
+### 60-second product tour
+
+![Nebula-Stream 60 second demo](docs/media/demo.gif)
+
+In one minute, the demo shows the full path: trigger -> orchestrator -> NATS -> WASM/AI workers -> state callback -> live telemetry.
+
 ```bash
 cd web
 npm install
 npm run dev
 ```
+
+## Community
+
+- Showcase thread: `https://github.com/erciktiburak/Nebula-Stream/discussions/1`
+- Roadmap voting poll: `https://github.com/erciktiburak/Nebula-Stream/discussions/2`
 
 ## Performance Target
 
