@@ -132,3 +132,6 @@
 ## Commit 45
 - feat: implement "Dry Run" mode for workflow validation
 
+## Commit 46
+- perf: benchmark report (achieved 50k events per second)
+
