@@ -72,3 +72,6 @@
 ## Commit 25
 - test: end-to-end test for a simple WASM-based workflow
 
+## Commit 26
+- feat(engine): add conditional branching logic (if/else)
+
