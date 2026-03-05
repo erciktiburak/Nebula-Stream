@@ -27,3 +27,6 @@
 ## Commit 10
 - docs: add high-level system architecture to README
 
+## Commit 11
+- feat(core): add support for multiple worker nodes in the mesh
+
