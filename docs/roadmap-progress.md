@@ -36,3 +36,6 @@
 ## Commit 13
 - fix: handle NATS connection drops and auto-reconnect
 
+## Commit 14
+- feat(core): add logging middleware for ingestion pipeline
+
