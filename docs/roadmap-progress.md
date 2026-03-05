@@ -75,3 +75,6 @@
 ## Commit 26
 - feat(engine): add conditional branching logic (if/else)
 
+## Commit 27
+- feat(runtime): add support for Rust-compiled WASM plugins
+
