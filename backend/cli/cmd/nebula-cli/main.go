@@ -1,13 +1,17 @@
 package main
 
 import (
+	"context"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
+	"github.com/nats-io/nats.go"
 	"github.com/nebula-stream/cli/internal/health"
 )
 
@@ -29,6 +33,8 @@ func run(args []string) error {
 		return runHealth(args[1:])
 	case "deploy":
 		return runDeploy(args[1:])
+	case "trigger":
+		return runTrigger(args[1:])
 	case "help", "-h", "--help":
 		printUsage()
 		return nil
@@ -74,6 +80,57 @@ func runDeploy(args []string) error {
 	return nil
 }
 
+func runTrigger(args []string) error {
+	fs := flag.NewFlagSet("trigger", flag.ContinueOnError)
+	var (
+		natsURL string
+		subject string
+		topic   string
+		payload string
+	)
+
+	fs.StringVar(&natsURL, "nats", "nats://127.0.0.1:4222", "nats server URL")
+	fs.StringVar(&subject, "subject", "nebula.events.ingest", "ingestion subject")
+	fs.StringVar(&topic, "topic", "workflow.hello", "event topic")
+	fs.StringVar(&payload, "payload", "{}", "event payload as JSON string")
+
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+
+	conn, err := nats.Connect(natsURL)
+	if err != nil {
+		return fmt.Errorf("connect to nats: %w", err)
+	}
+	defer conn.Close()
+
+	envelope := map[string]any{
+		"id":         fmt.Sprintf("evt-%d", time.Now().UnixNano()),
+		"topic":      topic,
+		"payload":    []byte(payload),
+		"created_at": time.Now().UTC(),
+		"meta": map[string]string{
+			"source": "nebula-cli",
+		},
+	}
+
+	raw, err := json.Marshal(envelope)
+	if err != nil {
+		return fmt.Errorf("marshal event: %w", err)
+	}
+
+	if err := conn.Publish(subject, raw); err != nil {
+		return fmt.Errorf("publish event: %w", err)
+	}
+
+	if err := conn.FlushWithContext(context.Background()); err != nil {
+		return fmt.Errorf("flush publish: %w", err)
+	}
+
+	fmt.Printf("event published subject=%s topic=%s\n", subject, topic)
+	return nil
+}
+
 func validateWorkflowFile(path string) error {
 	ext := strings.ToLower(filepath.Ext(path))
 	if ext != ".yaml" && ext != ".yml" {
@@ -97,4 +154,5 @@ func printUsage() {
 	fmt.Println("nebula-cli commands:")
 	fmt.Println("  health [--node <id>]          Show health status for a node")
 	fmt.Println("  deploy -f <workflow.yaml>     Validate and queue workflow deployment")
+	fmt.Println("  trigger [flags]               Publish workflow event to NATS")
 }

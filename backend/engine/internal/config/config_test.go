@@ -15,6 +15,10 @@ func TestLoadDefaults(t *testing.T) {
 	if cfg.NodeID == "" || cfg.NATSURL == "" || cfg.HeartbeatSecs <= 0 {
 		t.Fatalf("unexpected defaults: %+v", cfg)
 	}
+
+	if cfg.WorkflowPath == "" || cfg.IngestSubject == "" {
+		t.Fatalf("expected workflow and subject defaults: %+v", cfg)
+	}
 }
 
 func TestLoadInvalidHeartbeat(t *testing.T) {

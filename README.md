@@ -103,6 +103,7 @@ CLI command examples:
 ```bash
 go run ./backend/cli/cmd/nebula-cli health --node edge-a1
 go run ./backend/cli/cmd/nebula-cli deploy -f workflows/examples/hello-world.yaml
+go run ./backend/cli/cmd/nebula-cli trigger --topic workflow.hello --payload '{"message":"from-cli"}'
 ```
 
 ## Example Workflow

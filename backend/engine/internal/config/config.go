@@ -10,6 +10,8 @@ type Config struct {
 	NodeID        string
 	NATSURL       string
 	HeartbeatSecs int
+	WorkflowPath  string
+	IngestSubject string
 }
 
 func Load() (Config, error) {
@@ -17,6 +19,8 @@ func Load() (Config, error) {
 		NodeID:        getEnv("NEBULA_NODE_ID", "engine-local"),
 		NATSURL:       getEnv("NEBULA_NATS_URL", "nats://127.0.0.1:4222"),
 		HeartbeatSecs: 5,
+		WorkflowPath:  getEnv("NEBULA_WORKFLOW_PATH", "workflows/examples/hello-world.yaml"),
+		IngestSubject: getEnv("NEBULA_INGEST_SUBJECT", "nebula.events.ingest"),
 	}
 
 	if v := os.Getenv("NEBULA_HEARTBEAT_SECONDS"); v != "" {
