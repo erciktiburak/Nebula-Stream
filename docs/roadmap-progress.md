@@ -54,3 +54,6 @@
 ## Commit 19
 - feat(engine): implement sequential task execution (pipeline)
 
+## Commit 20
+- feat(engine): implement parallel task execution (fan-out)
+
