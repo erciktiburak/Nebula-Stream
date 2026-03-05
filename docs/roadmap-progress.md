@@ -114,3 +114,6 @@
 ## Commit 39
 - feat(telemetry): integrate OpenTelemetry for distributed tracing
 
+## Commit 40
+- feat(ui): show real-time message flow between nodes in dashboard
+
