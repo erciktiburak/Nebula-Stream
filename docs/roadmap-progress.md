@@ -12,3 +12,6 @@
 ## Commit 5
 - feat(core): implement high-speed async worker pool
 
+## Commit 6
+- test: unit tests for internal messaging reliability
+
