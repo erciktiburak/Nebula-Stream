@@ -99,3 +99,6 @@
 ## Commit 34
 - docs: add WASM plugin development guide
 
+## Commit 35
+- test: integration tests for complex parallel workflows
+
