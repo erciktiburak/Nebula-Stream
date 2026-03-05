@@ -144,3 +144,6 @@
 ## Commit 49
 - chore: final security audit and dependency updates
 
+## Commit 50
+- release: v1.0.0-beta "The First Constellation"
+
