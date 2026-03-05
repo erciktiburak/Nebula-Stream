@@ -9,3 +9,6 @@
 ## Commit 4
 - feat(core): implement "node" registration and heartbeat mechanism
 
+## Commit 5
+- feat(core): implement high-speed async worker pool
+
