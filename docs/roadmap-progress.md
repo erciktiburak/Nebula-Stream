@@ -102,3 +102,6 @@
 ## Commit 35
 - test: integration tests for complex parallel workflows
 
+## Commit 36
+- feat(ui): setup next.js project with shadcn/ui
+
