@@ -24,3 +24,6 @@
 ## Commit 9
 - refactor: optimize message serialization using protobuf
 
+## Commit 10
+- docs: add high-level system architecture to README
+

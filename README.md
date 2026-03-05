@@ -71,3 +71,7 @@ Detailed milestone breakdown will be tracked in `docs/architecture.md` and upcom
 
 TBD
 # Nebula-Stream
+
+## System Architecture
+
+Nebula-Stream uses an event-driven control plane with distributed workers and WASM runtime sandboxes.
