@@ -106,6 +106,15 @@ go run ./backend/cli/cmd/nebula-cli deploy -f workflows/examples/hello-world.yam
 go run ./backend/cli/cmd/nebula-cli trigger --topic workflow.hello --payload '{"message":"from-cli"}'
 ```
 
+End-to-end local event test:
+
+```bash
+docker compose -f deploy/docker-compose.yml up -d
+go run ./backend/engine/cmd/engine
+# in another terminal
+go run ./backend/cli/cmd/nebula-cli trigger --topic workflow.hello --payload '{"message":"from-cli"}'
+```
+
 ## Example Workflow
 
 See `workflows/examples/hello-world.yaml` for a minimal trigger + step definition.
