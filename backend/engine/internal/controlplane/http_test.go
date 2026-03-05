@@ -43,6 +43,9 @@ func TestExecutionEndpoint(t *testing.T) {
 	if err := store.Save("execution:evt-123", []byte(`{"event_id":"evt-123"}`)); err != nil {
 		t.Fatalf("seed store: %v", err)
 	}
+	if err := store.Save("workflow:hello:latest", []byte(`{"event_id":"evt-999","workflow":"hello"}`)); err != nil {
+		t.Fatalf("seed latest: %v", err)
+	}
 
 	registry := workflow.NewRegistry(workflow.Definition{Name: "hello", Version: "v1", Triggers: []workflow.Trigger{{Type: "manual"}}, Steps: []workflow.Step{{ID: "s1", Type: "builtin.log"}}})
 	srv := NewServer(registry, store)
@@ -53,5 +56,12 @@ func TestExecutionEndpoint(t *testing.T) {
 
 	if res.Code != http.StatusOK {
 		t.Fatalf("unexpected status code: %d", res.Code)
+	}
+
+	latestReq := httptest.NewRequest(http.MethodGet, "/api/v1/executions/latest?workflow=hello", nil)
+	latestRes := httptest.NewRecorder()
+	srv.Handler().ServeHTTP(latestRes, latestReq)
+	if latestRes.Code != http.StatusOK {
+		t.Fatalf("unexpected latest status code: %d", latestRes.Code)
 	}
 }

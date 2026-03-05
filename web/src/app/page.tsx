@@ -1,6 +1,5 @@
 'use client'
 
-import { useMemo } from 'react'
 import { WorkflowCanvas } from '@/react-flow'
 import { useTelemetryFeed } from '@/telemetry-socket'
 
@@ -16,11 +15,6 @@ function StatCard({ label, value }: { label: string; value: string }) {
 export default function Page() {
   const telemetry = useTelemetryFeed()
 
-  const errorCount = useMemo(
-    () => telemetry.logs.filter((log) => log.level === 'error').length,
-    [telemetry.logs],
-  )
-
   return (
     <main className="page-shell">
       <header className="topbar">
@@ -28,14 +22,14 @@ export default function Page() {
           <p className="eyebrow">Nebula-Stream</p>
           <h1>Live Workflow Studio</h1>
         </div>
-        <span className="chip">Mock Telemetry</span>
+        <span className="chip">{telemetry.mode === 'live' ? 'Live Engine Data' : 'Mock Telemetry'}</span>
       </header>
 
       <section className="stat-grid">
         <StatCard label="Event Throughput" value={`${telemetry.throughput}/sec`} />
         <StatCard label="Active Nodes" value={`${telemetry.activeNodes}`} />
         <StatCard label="Pipeline Latency" value={`${telemetry.latencyMs} ms`} />
-        <StatCard label="Errors (5 min)" value={`${errorCount}`} />
+        <StatCard label="Workflow" value={telemetry.activeWorkflow} />
       </section>
 
       <section className="content-grid">

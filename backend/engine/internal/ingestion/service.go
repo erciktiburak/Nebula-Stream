@@ -60,31 +60,49 @@ func (s *Service) handle(event bus.EventEnvelope) error {
 		return err
 	}
 
+	started := time.Now().UTC()
 	results, err := s.runner.Execute(context.Background(), def, event)
 	if err != nil {
 		return err
 	}
+	durationMs := time.Since(started).Milliseconds()
 
-	if err := s.persistExecution(def.Name, event, results); err != nil {
+	if err := s.persistExecution(def, event, started, durationMs, results); err != nil {
 		return err
 	}
 
-	log.Printf("workflow executed name=%s steps=%d", def.Name, len(results))
+	log.Printf("workflow executed name=%s steps=%d duration_ms=%d", def.Name, len(results), durationMs)
 
 	return nil
 }
 
-func (s *Service) persistExecution(workflowName string, event bus.EventEnvelope, results map[string]engine.StepResult) error {
+func (s *Service) persistExecution(def workflow.Definition, event bus.EventEnvelope, startedAt time.Time, durationMs int64, results map[string]engine.StepResult) error {
 	if s.store == nil {
 		return nil
 	}
 
+	stepResults := make([]map[string]any, 0, len(def.Steps))
+	for _, step := range def.Steps {
+		stepResult, ok := results[step.ID]
+		if !ok {
+			continue
+		}
+
+		stepResults = append(stepResults, map[string]any{
+			"id":     step.ID,
+			"type":   step.Type,
+			"output": stepResult.Output,
+		})
+	}
+
 	record := map[string]any{
 		"event_id":    event.ID,
-		"workflow":    workflowName,
+		"workflow":    def.Name,
 		"topic":       event.Topic,
-		"executed_at": time.Now().UTC(),
-		"results":     results,
+		"started_at":  startedAt,
+		"duration_ms": durationMs,
+		"step_count":  len(stepResults),
+		"results":     stepResults,
 	}
 
 	raw, err := json.Marshal(record)
@@ -96,7 +114,7 @@ func (s *Service) persistExecution(workflowName string, event bus.EventEnvelope,
 		return fmt.Errorf("save execution record: %w", err)
 	}
 
-	if err := s.store.Save(latestExecutionKey(workflowName), raw); err != nil {
+	if err := s.store.Save(latestExecutionKey(def.Name), raw); err != nil {
 		return fmt.Errorf("save latest execution record: %w", err)
 	}
 

@@ -24,6 +24,7 @@ func (s *Server) Handler() http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/healthz", s.handleHealth)
 	mux.HandleFunc("/api/v1/workflows", s.handleWorkflows)
+	mux.HandleFunc("/api/v1/executions/latest", s.handleLatestExecution)
 	mux.HandleFunc("/api/v1/executions/", s.handleExecutionByID)
 	return mux
 }
@@ -89,6 +90,38 @@ func (s *Server) handleExecutionByID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	raw, err := s.store.Load("execution:" + id)
+	if err != nil {
+		writeErr(w, http.StatusNotFound, err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write(raw)
+}
+
+func (s *Server) handleLatestExecution(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
+	if s.store == nil {
+		writeErr(w, http.StatusNotFound, fmt.Errorf("state store is not configured"))
+		return
+	}
+
+	name := r.URL.Query().Get("workflow")
+	if name == "" {
+		active, ok := s.registry.Active()
+		if !ok {
+			writeErr(w, http.StatusNotFound, fmt.Errorf("no active workflow configured"))
+			return
+		}
+		name = active.Name
+	}
+
+	raw, err := s.store.Load("workflow:" + name + ":latest")
 	if err != nil {
 		writeErr(w, http.StatusNotFound, err)
 		return
