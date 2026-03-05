@@ -111,3 +111,6 @@
 ## Commit 38
 - feat(ui): add real-time telemetry dashboard using websockets
 
+## Commit 39
+- feat(telemetry): integrate OpenTelemetry for distributed tracing
+
