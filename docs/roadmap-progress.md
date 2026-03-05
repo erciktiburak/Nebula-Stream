@@ -129,3 +129,6 @@
 ## Commit 44
 - fix(ui): improve node-canvas performance for 100+ nodes
 
+## Commit 45
+- feat: implement "Dry Run" mode for workflow validation
+
