@@ -96,3 +96,6 @@
 ## Commit 33
 - refactor: optimize data buffer management for large payloads
 
+## Commit 34
+- docs: add WASM plugin development guide
+
