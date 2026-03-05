@@ -1,11 +1,11 @@
 package runtime
 
 func RuntimeName() string {
-  return "wasmtime"
+	return "wasmtime"
 }
 
 func SandboxEnabled() bool {
-  return true
+	return true
 }
 
 type StepData map[string][]byte

@@ -1,5 +1,5 @@
 package telemetry
 
 func TracingEnabled() bool {
-  return true
+	return true
 }

@@ -1,5 +1,5 @@
 package ai
 
 func WorkerType() string {
-  return "onnx"
+	return "onnx"
 }

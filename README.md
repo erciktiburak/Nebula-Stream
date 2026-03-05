@@ -70,6 +70,13 @@ Bootstrap and validate:
 make check
 ```
 
+Run formatting or tests individually:
+
+```bash
+make fmt
+make test
+```
+
 Start local messaging dependency:
 
 ```bash
@@ -81,6 +88,13 @@ Run entrypoints:
 ```bash
 go run ./backend/engine/cmd/engine
 go run ./backend/cli/cmd/nebula-cli
+```
+
+CLI command examples:
+
+```bash
+go run ./backend/cli/cmd/nebula-cli health --node edge-a1
+go run ./backend/cli/cmd/nebula-cli deploy -f workflows/examples/hello-world.yaml
 ```
 
 ## Example Workflow
