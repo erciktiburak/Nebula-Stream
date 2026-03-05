@@ -117,3 +117,6 @@
 ## Commit 40
 - feat(ui): show real-time message flow between nodes in dashboard
 
+## Commit 41
+- feat(api): add prometheus metrics exporter for cluster health
+
