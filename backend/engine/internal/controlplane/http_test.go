@@ -120,3 +120,24 @@ func TestTriggerEndpoint(t *testing.T) {
 		t.Fatalf("unexpected payload message: %v", payload["message"])
 	}
 }
+
+func TestActiveWorkflowEndpoint(t *testing.T) {
+	pub := &testPublisher{}
+	registry := workflow.NewRegistry(workflow.Definition{Name: "hello", Version: "v1", Triggers: []workflow.Trigger{{Type: "manual"}}, Steps: []workflow.Step{{ID: "s1", Type: "builtin.log"}}})
+	registry.Upsert(workflow.Definition{Name: "image", Version: "v1", Triggers: []workflow.Trigger{{Type: "manual"}}, Steps: []workflow.Step{{ID: "s1", Type: "builtin.log"}}})
+	srv := NewServer(registry, state.NewMemoryStore(), pub, "nebula.events.ingest")
+
+	setReq := httptest.NewRequest(http.MethodPost, "/api/v1/workflows/active", strings.NewReader(`{"workflow":"image"}`))
+	setRes := httptest.NewRecorder()
+	srv.Handler().ServeHTTP(setRes, setReq)
+	if setRes.Code != http.StatusAccepted {
+		t.Fatalf("unexpected set active status code: %d", setRes.Code)
+	}
+
+	getReq := httptest.NewRequest(http.MethodGet, "/api/v1/workflows/active", nil)
+	getRes := httptest.NewRecorder()
+	srv.Handler().ServeHTTP(getRes, getReq)
+	if getRes.Code != http.StatusOK {
+		t.Fatalf("unexpected get active status code: %d", getRes.Code)
+	}
+}

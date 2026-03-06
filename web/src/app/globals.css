@@ -121,6 +121,17 @@ h1 {
   filter: brightness(1.08);
 }
 
+.secondary-btn {
+  background: linear-gradient(180deg, #194532, #14382a);
+  border-color: #3d8f6d;
+}
+
+.trigger-status-line {
+  padding: 0 1rem 0.9rem;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+}
+
 .history-panel {
   margin-top: 1rem;
 }

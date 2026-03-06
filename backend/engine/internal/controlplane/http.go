@@ -35,11 +35,51 @@ func (s *Server) Handler() http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/healthz", s.handleHealth)
 	mux.HandleFunc("/api/v1/workflows", s.handleWorkflows)
+	mux.HandleFunc("/api/v1/workflows/active", s.handleActiveWorkflow)
 	mux.HandleFunc("/api/v1/executions/latest", s.handleLatestExecution)
 	mux.HandleFunc("/api/v1/executions/history", s.handleExecutionHistory)
 	mux.HandleFunc("/api/v1/executions/", s.handleExecutionByID)
 	mux.HandleFunc("/api/v1/triggers", s.handleTrigger)
 	return mux
+}
+
+type activeWorkflowRequest struct {
+	Workflow string `json:"workflow"`
+}
+
+func (s *Server) handleActiveWorkflow(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		active, ok := s.registry.Active()
+		if !ok {
+			writeErr(w, http.StatusNotFound, fmt.Errorf("no active workflow configured"))
+			return
+		}
+		writeJSON(w, http.StatusOK, map[string]string{"workflow": active.Name})
+	case http.MethodPost:
+		var req activeWorkflowRequest
+		if err := json.NewDecoder(io.LimitReader(r.Body, 1<<20)).Decode(&req); err != nil {
+			writeErr(w, http.StatusBadRequest, fmt.Errorf("decode active workflow request: %w", err))
+			return
+		}
+
+		if req.Workflow == "" {
+			writeErr(w, http.StatusBadRequest, fmt.Errorf("workflow is required"))
+			return
+		}
+
+		if err := s.registry.SetActive(req.Workflow); err != nil {
+			writeErr(w, http.StatusNotFound, err)
+			return
+		}
+
+		writeJSON(w, http.StatusAccepted, map[string]string{
+			"status":   "accepted",
+			"workflow": req.Workflow,
+		})
+	default:
+		w.WriteHeader(http.StatusMethodNotAllowed)
+	}
 }
 
 func (s *Server) handleHealth(w http.ResponseWriter, _ *http.Request) {

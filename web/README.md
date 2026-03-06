@@ -10,6 +10,7 @@ This package contains a running Next.js demo for Nebula-Stream workflow visualiz
 - Execution history timeline from control-plane (`/api/v1/executions/history`)
 - Manual trigger button (`POST /api/v1/triggers`)
 - Workflow selector for targeting specific deployed workflows
+- Set active workflow button (`POST /api/v1/workflows/active`)
 - Throughput, node count, latency, and error widgets
 - Live node log feed panel
 

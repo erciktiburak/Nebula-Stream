@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { WorkflowCanvas } from '@/react-flow'
-import { triggerWorkflow, useTelemetryFeed } from '@/telemetry-socket'
+import { setActiveWorkflow, triggerWorkflow, useTelemetryFeed } from '@/telemetry-socket'
 
 function StatCard({ label, value }: { label: string; value: string }) {
   return (
@@ -17,6 +17,7 @@ export default function Page() {
   const telemetry = useTelemetryFeed()
   const [selectedWorkflow, setSelectedWorkflow] = useState('hello-world')
   const [triggerStatus, setTriggerStatus] = useState('')
+  const [activeStatus, setActiveStatus] = useState('')
 
   useEffect(() => {
     if (!telemetry.workflows.length) {
@@ -37,6 +38,18 @@ export default function Page() {
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'unknown trigger error'
       setTriggerStatus(msg)
+    }
+  }
+
+  const handleSetActive = async () => {
+    const engineURL = process.env.NEXT_PUBLIC_ENGINE_URL || 'http://127.0.0.1:8080'
+    const workflow = selectedWorkflow || telemetry.activeWorkflow
+    try {
+      const result = await setActiveWorkflow(engineURL, workflow)
+      setActiveStatus(`active workflow set to ${result.workflow}`)
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'unknown active workflow error'
+      setActiveStatus(msg)
     }
   }
 
@@ -73,8 +86,12 @@ export default function Page() {
           <button onClick={handleTrigger} type="button" className="trigger-btn">
             Trigger {selectedWorkflow}
           </button>
+          <button onClick={handleSetActive} type="button" className="trigger-btn secondary-btn">
+            Set Active
+          </button>
           <span>{triggerStatus || 'waiting'}</span>
         </div>
+        <div className="trigger-status-line">{activeStatus || `current active: ${telemetry.activeWorkflow}`}</div>
       </section>
 
       <section className="stat-grid">

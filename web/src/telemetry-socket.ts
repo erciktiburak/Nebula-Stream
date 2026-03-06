@@ -98,6 +98,22 @@ export async function triggerWorkflow(engineURL: string, workflow: string, messa
   return (await resp.json()) as { event_id: string; workflow: string; topic: string }
 }
 
+export async function setActiveWorkflow(engineURL: string, workflow: string) {
+  const url = `${engineURL.replace(/\/$/, '')}/api/v1/workflows/active`
+  const resp = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ workflow }),
+  })
+
+  if (!resp.ok) {
+    const body = await resp.text()
+    throw new Error(`set active failed status=${resp.status} body=${body}`)
+  }
+
+  return (await resp.json()) as { status: string; workflow: string }
+}
+
 function toNode(stepType: string): string {
   if (stepType.startsWith('wasm')) {
     return 'wasm'

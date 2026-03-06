@@ -110,6 +110,8 @@ Control-plane API:
 
 - `GET /healthz`
 - `GET /api/v1/workflows`
+- `GET /api/v1/workflows/active`
+- `POST /api/v1/workflows/active` (JSON body)
 - `POST /api/v1/workflows` (YAML body)
 - `POST /api/v1/triggers` (JSON body)
 - `GET /api/v1/executions/latest?workflow=<name>`
