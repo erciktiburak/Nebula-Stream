@@ -32,6 +32,7 @@ type executionRecord struct {
 	EventID    string          `json:"event_id"`
 	Workflow   string          `json:"workflow"`
 	Topic      string          `json:"topic"`
+	Payload    map[string]any  `json:"payload,omitempty"`
 	StartedAt  time.Time       `json:"started_at"`
 	DurationMs int64           `json:"duration_ms"`
 	StepCount  int             `json:"step_count"`
@@ -123,6 +124,7 @@ func (s *Service) persistExecution(def workflow.Definition, event bus.EventEnvel
 		EventID:    event.ID,
 		Workflow:   def.Name,
 		Topic:      event.Topic,
+		Payload:    decodeEventPayload(event.Payload),
 		StartedAt:  startedAt,
 		DurationMs: durationMs,
 		StepCount:  len(stepResults),
@@ -191,6 +193,19 @@ func latestExecutionKey(workflowName string) string {
 
 func historyExecutionKey(workflowName string) string {
 	return fmt.Sprintf("workflow:%s:history", workflowName)
+}
+
+func decodeEventPayload(raw []byte) map[string]any {
+	if len(raw) == 0 {
+		return map[string]any{}
+	}
+
+	var payload map[string]any
+	if err := json.Unmarshal(raw, &payload); err != nil {
+		return map[string]any{}
+	}
+
+	return payload
 }
 
 func (s *Service) resolveWorkflow(event bus.EventEnvelope) (workflow.Definition, error) {

@@ -74,6 +74,38 @@ export default function Page() {
     }
   }
 
+  const handleCopyDetail = async () => {
+    if (!executionDetail) {
+      return
+    }
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(executionDetail, null, 2))
+      setDetailStatus('execution JSON copied to clipboard')
+    } catch {
+      setDetailStatus('clipboard write failed')
+    }
+  }
+
+  const handleRetrigger = async () => {
+    if (!executionDetail) {
+      return
+    }
+
+    const engineURL = process.env.NEXT_PUBLIC_ENGINE_URL || 'http://127.0.0.1:8080'
+    try {
+      const message =
+        typeof executionDetail.payload.message === 'string'
+          ? executionDetail.payload.message
+          : `retrigger from ${executionDetail.eventId}`
+      const result = await triggerWorkflow(engineURL, executionDetail.workflow, message)
+      setDetailStatus(`re-triggered as ${result.event_id}`)
+      setTriggerStatus(`re-triggered event ${result.event_id}`)
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'unknown re-trigger error'
+      setDetailStatus(msg)
+    }
+  }
+
   return (
     <main className="page-shell">
       <header className="topbar">
@@ -173,6 +205,14 @@ export default function Page() {
               <p>
                 {executionDetail.workflow} · {executionDetail.eventId} · {executionDetail.durationMs} ms
               </p>
+              <div className="detail-actions">
+                <button type="button" className="trigger-btn" onClick={handleCopyDetail}>
+                  Copy JSON
+                </button>
+                <button type="button" className="trigger-btn secondary-btn" onClick={handleRetrigger}>
+                  Re-trigger Payload
+                </button>
+              </div>
               <ul className="step-detail-list">
                 {executionDetail.results.map((step) => (
                   <li key={step.id}>
@@ -182,6 +222,7 @@ export default function Page() {
                   </li>
                 ))}
               </ul>
+              <p>{detailStatus || 'ready'}</p>
             </>
           ) : (
             <p>{detailStatus || 'click an execution card to inspect step outputs'}</p>

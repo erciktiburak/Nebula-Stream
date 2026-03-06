@@ -73,6 +73,7 @@ type ExecutionRecord = {
   event_id: string
   workflow: string
   topic: string
+  payload?: Record<string, unknown>
   started_at: string
   duration_ms: number
   step_count: number
@@ -83,6 +84,7 @@ export type ExecutionDetail = {
   eventId: string
   workflow: string
   topic: string
+  payload: Record<string, unknown>
   startedAt: string
   durationMs: number
   stepCount: number
@@ -129,6 +131,7 @@ function toExecutionDetail(record: ExecutionRecord): ExecutionDetail {
     eventId: record.event_id,
     workflow: record.workflow,
     topic: record.topic,
+    payload: record.payload ?? {},
     startedAt: record.started_at,
     durationMs: record.duration_ms,
     stepCount: record.step_count,
