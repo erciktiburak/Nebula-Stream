@@ -88,6 +88,24 @@ h1 {
   font-size: 0.86rem;
 }
 
+.workflow-select-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.workflow-select {
+  border: 1px solid #3f6f95;
+  background: #102437;
+  color: var(--text-main);
+  border-radius: 8px;
+  padding: 0.42rem 0.5rem;
+  min-width: 180px;
+  font-family: inherit;
+}
+
 .trigger-btn {
   border: 1px solid #4e8fc2;
   color: #e5f5ff;
@@ -271,5 +289,10 @@ h1 {
 
   .history-list {
     grid-template-columns: 1fr;
+  }
+
+  .trigger-actions {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }

@@ -13,6 +13,7 @@ type TelemetrySnapshot = {
   messages: EdgeMessage[]
   mode: 'mock' | 'live'
   activeWorkflow: string
+  workflows: string[]
   history: Array<{ eventId: string; workflow: string; durationMs: number; startedAt: string }>
 }
 
@@ -152,6 +153,7 @@ function mapHistory(records: ExecutionRecord[]): TelemetrySnapshot['history'] {
 
 async function fetchLiveSnapshot(engineURL: string): Promise<
   (Pick<TelemetrySnapshot, 'throughput' | 'activeNodes' | 'latencyMs' | 'logs' | 'messages' | 'activeWorkflow'> & {
+    workflows: string[]
     history: TelemetrySnapshot['history']
   }) | null
 > {
@@ -179,6 +181,7 @@ async function fetchLiveSnapshot(engineURL: string): Promise<
 
   return {
     ...fromExecution(latest),
+    workflows: workflows.workflows,
     history: mapHistory(history),
   }
 }
@@ -206,6 +209,7 @@ export function connectTelemetrySocket(
           messages: [nextEdge(cursor), nextEdge(cursor + 1)],
           mode: 'mock',
           activeWorkflow: 'hello-world',
+          workflows: ['hello-world'],
           history: [],
         })
       })
@@ -218,6 +222,7 @@ export function connectTelemetrySocket(
           messages: [nextEdge(cursor), nextEdge(cursor + 1)],
           mode: 'mock',
           activeWorkflow: 'hello-world',
+          workflows: ['hello-world'],
           history: [],
         })
       })
@@ -257,6 +262,7 @@ export function useTelemetryFeed() {
     ],
     mode: 'mock',
     activeWorkflow: 'hello-world',
+    workflows: ['hello-world'],
     history: [],
   })
 
@@ -270,6 +276,7 @@ export function useTelemetryFeed() {
         messages: [...snapshot.messages, ...prev.messages].slice(0, 12),
         mode: snapshot.mode,
         activeWorkflow: snapshot.activeWorkflow,
+        workflows: snapshot.workflows,
         history: snapshot.history,
       }))
     }, engineURL)

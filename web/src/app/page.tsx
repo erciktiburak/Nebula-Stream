@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { WorkflowCanvas } from '@/react-flow'
 import { triggerWorkflow, useTelemetryFeed } from '@/telemetry-socket'
 
@@ -15,12 +15,24 @@ function StatCard({ label, value }: { label: string; value: string }) {
 
 export default function Page() {
   const telemetry = useTelemetryFeed()
+  const [selectedWorkflow, setSelectedWorkflow] = useState('hello-world')
   const [triggerStatus, setTriggerStatus] = useState('')
+
+  useEffect(() => {
+    if (!telemetry.workflows.length) {
+      return
+    }
+
+    if (!telemetry.workflows.includes(selectedWorkflow)) {
+      setSelectedWorkflow(telemetry.activeWorkflow || telemetry.workflows[0])
+    }
+  }, [telemetry.activeWorkflow, telemetry.workflows, selectedWorkflow])
 
   const handleTrigger = async () => {
     const engineURL = process.env.NEXT_PUBLIC_ENGINE_URL || 'http://127.0.0.1:8080'
+    const workflow = selectedWorkflow || telemetry.activeWorkflow
     try {
-      const result = await triggerWorkflow(engineURL, telemetry.activeWorkflow, 'dashboard manual trigger')
+      const result = await triggerWorkflow(engineURL, workflow, 'dashboard manual trigger')
       setTriggerStatus(`triggered event ${result.event_id}`)
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'unknown trigger error'
@@ -44,8 +56,22 @@ export default function Page() {
           <p>Send one event to the active workflow via control-plane API</p>
         </div>
         <div className="trigger-actions">
+          <label className="workflow-select-label">
+            Workflow
+            <select
+              className="workflow-select"
+              value={selectedWorkflow}
+              onChange={(e) => setSelectedWorkflow(e.target.value)}
+            >
+              {telemetry.workflows.map((workflow) => (
+                <option key={workflow} value={workflow}>
+                  {workflow}
+                </option>
+              ))}
+            </select>
+          </label>
           <button onClick={handleTrigger} type="button" className="trigger-btn">
-            Trigger {telemetry.activeWorkflow}
+            Trigger {selectedWorkflow}
           </button>
           <span>{triggerStatus || 'waiting'}</span>
         </div>
